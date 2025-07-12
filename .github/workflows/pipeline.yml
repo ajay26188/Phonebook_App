@@ -3,14 +3,15 @@ name: CI/CD
 on:
   push:
     branches: [main]
-  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, synchronize]
 
 jobs:
-  deploy:
+  deployment_pipeline:
     runs-on: ubuntu-22.04
+    outputs:
+      commit_msg: ${{ steps.check_skip.outputs.commit_msg }}
     steps:
       - uses: actions/checkout@v4
 
@@ -18,6 +19,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Check commit message
+        id: check_skip
+        run: |
+          echo "commit_msg=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
 
       - name: Install and build frontend
         run: |
@@ -37,16 +43,28 @@ jobs:
           npm install
           npm run lint
 
-      - name: Deploy to Render
-        if: ${{ github.event_name == 'push' }}
+      - name: deploy
+        if: ${{ github.event_name == 'push' && !contains(steps.check_skip.outputs.commit_msg, '#skip') }}
         uses: sws2apps/render-deployment@main
         with:
           serviceId: ${{ secrets.RENDER_SERVICE_ID }}
           apiKey: ${{ secrets.RENDER_API_KEY }}
           multipleDeployment: false
 
+  tag_release:
+    needs: [deployment_pipeline]
+    runs-on: ubuntu-22.04
+    if: ${{ github.event_name == 'push' && !contains(needs.deployment_pipeline.outputs.commit_msg, '#skip') }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.73.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+
   notify_success:
-    needs: [deploy]
+    needs: [deployment_pipeline]
     if: ${{ success() && github.event_name == 'push' }}
     runs-on: ubuntu-22.04
     steps:
@@ -60,7 +78,7 @@ jobs:
             Live site: https://phonebook-app-uyb0.onrender.com
 
   notify_failure:
-    needs: [deploy]
+    needs: [deployment_pipeline]
     if: ${{ failure() && github.event_name == 'push' }}
     runs-on: ubuntu-22.04
     steps:
