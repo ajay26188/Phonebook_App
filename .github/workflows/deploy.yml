@@ -25,8 +25,8 @@ jobs:
 
       - name: Move frontend build to backend
         run: |
-          rm -rf server/build
-          cp -r client/build server/
+          rm -rf server/dist
+          cp -r client/dist server/
 
       - name: Install backend dependencies
         run: |
