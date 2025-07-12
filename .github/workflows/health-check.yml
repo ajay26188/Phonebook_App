@@ -1,0 +1,19 @@
+name: Periodic Health Check
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # every 7 days at 7 AM
+  workflow_dispatch: # allows manual runs from GitHub UI
+
+jobs:
+  health_check:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check deployment health
+        uses: jtalk/url-health-check-action@v3
+        with:
+          url: https://phonebook-app-uyb0.onrender.com
+          follow-redirect: true
+          max-attempts: 3
+          retry-delay: 10s
+          retry-all: true

@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
 
 jobs:
   deploy:
@@ -35,8 +38,39 @@ jobs:
           npm run lint
 
       - name: Deploy to Render
+        if: ${{ github.event_name == 'push' }}
         uses: sws2apps/render-deployment@main
         with:
           serviceId: ${{ secrets.RENDER_SERVICE_ID }}
           apiKey: ${{ secrets.RENDER_API_KEY }}
           multipleDeployment: false
+
+  notify_success:
+    needs: [deploy]
+    if: ${{ success() && github.event_name == 'push' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Notify Discord of success
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            Deployment successful for commit: ${{ github.sha }} by ${{ github.event.head_commit.author.name }}
+            Live site: https://phonebook-app-uyb0.onrender.com
+
+  notify_failure:
+    needs: [deploy]
+    if: ${{ failure() && github.event_name == 'push' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Notify Discord of failure
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            Build failed!
+            Commit: ${{ github.event.head_commit.url }}
+            Message: ${{ github.event.head_commit.message }}
+            Author: ${{ github.event.head_commit.author.name }}
