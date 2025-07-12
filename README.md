@@ -1,7 +1,7 @@
 📞 Phonebook App – CI/CD Deployment
 This project demonstrates a full CI/CD pipeline for a full stack Phonebook application using GitHub Actions and Render for deployment.
 
-🔗 Live Application:
+Live Application:
 👉 https://phonebook-app-uyb0.onrender.com
 
 🚀 Deployment
