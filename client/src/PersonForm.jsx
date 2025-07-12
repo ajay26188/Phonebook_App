@@ -1,6 +1,5 @@
 import React from 'react'
 import App from './App'
-import personsService from './services/persons'
 
 function PersonForm({addNameNumber,newName,newNumber,nameBox,numberBox}) {
   return (

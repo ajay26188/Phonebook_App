@@ -1,0 +1,42 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install and build frontend
+        run: |
+          cd client
+          npm install
+          npm run lint
+          npm run build
+
+      - name: Move frontend build to backend
+        run: |
+          rm -rf server/build
+          cp -r client/build server/
+
+      - name: Install backend dependencies
+        run: |
+          cd server
+          npm install
+          npm run lint
+
+      - name: Deploy to Render
+        uses: sws2apps/render-deployment@main
+        with:
+          serviceId: ${{ secrets.RENDER_SERVICE_ID }}
+          apiKey: ${{ secrets.RENDER_API_KEY }}
+          multipleDeployment: false

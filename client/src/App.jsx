@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import Persons from './Persons'
 import Filter from './Filter'
 import PersonForm from './PersonForm'
-import axios from 'axios'
 import personsService from './services/persons'
 
 const Notification = ({message,messageType}) => {
@@ -61,7 +60,6 @@ const App = () => {
   }
 
   const addNameNumber = (event) => {
-    let person
     event.preventDefault()
     const newPerson = {
       name: newName,
