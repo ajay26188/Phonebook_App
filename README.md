@@ -5,6 +5,6 @@ Live Application:
 https://phonebook-app-uyb0.onrender.com
 
 Deployment:
-The backend is deployed on Render.
+The backend is deployed on Render for educational purpose.
 
 The frontend is built and served through the same Express backend using GitHub Actions.
